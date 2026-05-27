@@ -66,11 +66,30 @@ npm run bot
 
 ```
 arcmonitor/
-├── bot.js          # Telegram bot (grammy)
-├── monitor.js      # Block poller + event watcher (viem)
+├── bot.js               # Telegram bot (grammy)
+├── monitor.js           # Block poller + event watcher (viem)
 ├── data/
-│   └── db.json     # Persistent state (auto-created)
-├── .env.example    # Environment template
+│   └── db.json          # Persistent state (auto-created)
+├── contracts/           # Foundry smart contracts
+│   ├── foundry.toml     # Foundry config (solc 0.8.20, EVM Paris)
+│   ├── src/
+│   │   └── MockAgentRegistry.sol  # ERC-8004 agent identity registry
+│   └── test/
+│       └── MockAgentRegistry.t.sol  # Foundry tests (16 tests)
+├── frontend/            # Next.js agent activity dashboard
+│   ├── pages/
+│   │   ├── _app.tsx
+│   │   └── index.tsx    # Dashboard page
+│   ├── components/
+│   │   └── AgentCard.tsx
+│   ├── styles/
+│   │   └── globals.css
+│   └── package.json
+├── __tests__/           # Jest unit tests
+│   ├── jest.config.json
+│   ├── monitor.test.js  # Monitor polling logic tests
+│   └── bot.test.js      # Bot command and broadcast tests
+├── .env.example         # Environment template
 ├── .gitignore
 ├── package.json
 └── README.md
@@ -78,6 +97,37 @@ arcmonitor/
 
 - **monitor.js** polls Arc blocks via `viem`, processes ERC-8004 registry events and USDC transfers, and pushes alerts to an in-memory queue shared with `bot.js`.
 - **bot.js** runs the Telegram bot with `grammy`, handles user commands, and broadcasts queued alerts to all subscribers every 2 seconds.
+- **contracts/** — Foundry project with `MockAgentRegistry.sol` implementing the ERC-8004 agent identity standard (registration, update, deactivation with full event emission).
+- **frontend/** — Next.js dashboard displaying registered agents, their status, and recent events fetched via RPC.
+- **__tests__/** — Jest tests covering monitor state management, alert queue, config, exports, bot commands, and broadcast logic.
+
+## Testing
+
+```bash
+# Run Jest unit tests (monitor + bot)
+npm test
+
+# Run Foundry smart contract tests
+npm run test:contracts
+
+# Run all tests
+npm run test:all
+```
+
+## Frontend Dashboard
+
+```bash
+cd frontend
+cp .env.example .env    # Edit with your RPC URL and registry address
+npm install
+npm run dev             # Starts at http://localhost:3000
+```
+
+The dashboard shows:
+- Total / Active / Deactivated agent counts
+- Agent cards with address, owner, metadata URI, and activity status
+- Recent event history (registrations, updates, deactivations)
+- Auto-refreshes every 30 seconds
 
 ## License
 

@@ -1,0 +1,11 @@
+{
+  "testEnvironment": "node",
+  "testMatch": ["**/__tests__/**/*.test.js"],
+  "collectCoverageFrom": ["*.js", "!node_modules/**"],
+  "coverageDirectory": "coverage",
+  "verbose": true,
+  "transform": {},
+  "moduleFileExtensions": ["js", "json"],
+  "clearMocks": true,
+  "resetMocks": false
+}
