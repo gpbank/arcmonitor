@@ -240,8 +240,23 @@ async function main() {
   }
 }
 
+// ── CCTP Bridge Monitor ───────────────────────────────────────────────────────
+const cctp = require('./cctp-monitor');
+
+// Wire CCTP alerts into the shared alert queue
+cctp.setAlertQueue(alertQueue, pushAlert);
+
+// Add CCTP polling to the main loop (alongside agent + USDC)
+async function pollCCTPRange(fromBlock, toBlock) {
+  await cctp.pollCCTP(fromBlock, toBlock);
+}
+
 // ── Exports for bot.js ────────────────────────────────────────────────────────
-module.exports = { loadState, saveState, pushAlert, alertQueue, CONFIG, USDC_ADDRESS, fmtAddr };
+module.exports = {
+  loadState, saveState, pushAlert, alertQueue, CONFIG,
+  USDC_ADDRESS, fmtAddr,
+  cctp, pollCCTPRange,
+};
 
 // ── Auto-start if run directly ───────────────────────────────────────────────
 if (require.main === module) {

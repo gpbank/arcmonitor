@@ -93,6 +93,25 @@ function formatAlert(alert) {
         `Time: ${d}\n` +
         `Tx: \`${data.txHash}\``;
 
+    case 'CCTP_BRIDGE_IN':
+      return `🌉 *USDC Bridged INTO Arc*\n` +
+        `Amount: *${data.amount} USDC*\n` +
+        `From: ${data.from}\n` +
+        `To: ${data.to}\n` +
+        `Block: ${data.blockNumber}\n` +
+        `Time: ${d}\n` +
+        `Tx: \`${data.txHash}\``;
+
+    case 'CCTP_BRIDGE_OUT':
+      return `🌉 *USDC Bridged OUT of Arc*\n` +
+        `Amount: *${data.amount} USDC*\n` +
+        `From: ${data.from}\n` +
+        `To: ${data.to}\n` +
+        `Sender: \`${data.sender}\`\n` +
+        `Block: ${data.blockNumber}\n` +
+        `Time: ${d}\n` +
+        `Tx: \`${data.txHash}\``;
+
     default:
       return `📢 Alert: ${JSON.stringify(data)}`;
   }
@@ -112,12 +131,13 @@ bot.command('start', async (ctx) => {
 
   await ctx.reply(
     `🏦 *Arc Agent Monitor*\n\n` +
-    `Track ERC-8004 agent registrations and large USDC transfers on Arc Network.\n\n` +
+    `Track ERC-8004 agent registrations, large USDC transfers, and CCTP cross-chain bridges on Arc Network.\n\n` +
     `Commands:\n` +
     `/sub — Subscribe to alerts\n` +
     `/unsub — Unsubscribe\n` +
     `/status — Monitor status\n` +
-    `/agents — Recent agents\n\n` +
+    `/agents — Recent agents\n` +
+    `/bridge — CCTP bridge stats\n\n` +
     `Status: ${subbed ? '🟢 Subscribed' : '⚪ Not subscribed'}`,
     { parse_mode: 'Markdown', reply_markup: keyboard }
   );
@@ -135,7 +155,8 @@ bot.command('sub', async (ctx) => {
     'You will now receive alerts for:\n' +
     '• New ERC-8004 agent registrations\n' +
     '• Large USDC transfers (>' + monitor.CONFIG.usdcTransferThreshold.toLocaleString() + ' USDC)\n' +
-    '• Large USDC swaps (>' + monitor.CONFIG.usdcSwapThreshold + ' USDC)\n\n' +
+    '• Large USDC swaps (>' + monitor.CONFIG.usdcSwapThreshold + ' USDC)\n' +
+    '• CCTP bridge transactions (>' + monitor.cctp.CONFIG.bridgeAlertThreshold + ' USDC)\n\n' +
     'Use /unsub to stop receiving alerts.',
     { parse_mode: 'Markdown' }
   );
@@ -182,6 +203,37 @@ bot.command('agents', async (ctx) => {
   }
 
   await ctx.reply(lines.join('\n'), { parse_mode: 'Markdown' });
+});
+
+bot.command('bridge', async (ctx) => {
+  const stats = monitor.cctp.getBridgeStats();
+  const byChain = monitor.cctp.getVolumeByChain();
+  const topDepositors = monitor.cctp.getTopDepositors(5);
+
+  let msg = '🌉 *CCTP Bridge Monitor*\n\n';
+
+  if (byChain.length === 0) {
+    msg += 'No bridge activity detected yet.\n';
+  } else {
+    msg += '*Volume by Source Chain:*\n';
+    for (const chain of byChain.slice(0, 5)) {
+      msg += `• ${chain.name}: ${monitor.cctp.formatUSDC(BigInt(chain.volume))} USDC (${chain.count} txs)\n`;
+    }
+
+    if (topDepositors.length > 0) {
+      msg += '\n*Top Depositors:*\n';
+      for (const d of topDepositors) {
+        msg += `• \`${monitor.cctp.fmtAddr(d.address)}\`: ${monitor.cctp.formatUSDC(BigInt(d.volume))} USDC\n`;
+      }
+    }
+
+    msg += `\nRecent bridges: ${stats.recentBridges.length}`;
+  }
+
+  msg += `\n\nAlert threshold: ${monitor.cctp.CONFIG.bridgeAlertThreshold} USDC`;
+  msg += `\nCCTP Domain: ${monitor.cctp.CONFIG.arcDomain} (Arc)`;
+
+  await ctx.reply(msg, { parse_mode: 'Markdown' });
 });
 
 // ── Callback handlers for inline keyboard ─────────────────────────────────────

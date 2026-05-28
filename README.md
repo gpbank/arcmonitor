@@ -1,13 +1,15 @@
-# Arc Agent Monitor
+# Arc Agent Monitor + CCTP Bridge
 
-Tracks **ERC-8004** agent registrations and **agent-to-agent payments** on the **Arc Network**, sending real-time alerts via Telegram.
+Tracks **ERC-8004** agent registrations, **agent-to-agent payments**, and **CCTP cross-chain USDC bridges** on the **Arc Network**, sending real-time alerts via Telegram.
 
 ## Features
 
 - **ERC-8004 Agent Monitoring** — Detects `AgentRegistered`, `AgentUpdated`, and `AgentDeactivated` events from the on-chain agent registry
 - **USDC Transfer Monitoring** — Alerts on large USDC transfers (>100K) and swaps (>500 USDC)
-- **Telegram Bot** — Interactive bot with `/start`, `/sub`, `/unsub`, `/status`, `/agents` commands
-- **Persistent State** — Stores last processed block and alert history in `data/db.json`
+- **CCTP Bridge Monitor** — Tracks `MessageSent` and `MessageReceived` events for cross-chain USDC bridging (Arc domain: 26)
+- **Bridge Dashboard** — `/bridge` command shows volume by source chain, top depositors
+- **Telegram Bot** — Interactive bot with `/start`, `/sub`, `/unsub`, `/status`, `/agents`, `/bridge` commands
+- **Persistent State** — Stores last processed block and alert history in `data/` directory
 - **Configurable Thresholds** — Adjust poll interval, block range, and transfer thresholds via `.env`
 
 ## Prerequisites

@@ -1,6 +1,6 @@
 node_modules/
 .env
-data/db.json
+data/
 *.log
 # Foundry
 contracts/out/
